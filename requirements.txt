@@ -1,0 +1,6 @@
+vizdoom
+stable-baselines[mpi]
+tensorflow==1.13.2
+imageio
+matplotlib
+numpy
