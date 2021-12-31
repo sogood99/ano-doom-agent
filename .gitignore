@@ -2,3 +2,5 @@
 __pycache__
 venv
 _vizdoom
+_vizdoom.ini
+vizdoom-crash.log

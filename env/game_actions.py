@@ -3,8 +3,7 @@ import itertools
 import typing as t
 import numpy as np
 
-from vizdoom import Button
-
+from utils import *
 
 MUTUALLY_EXCLUSIVE_GROUPS = [
     [Button.MOVE_RIGHT, Button.MOVE_LEFT],
@@ -27,7 +26,7 @@ def has_exclusive_button(actions: np.ndarray, buttons: np.array) -> np.array:
 
 def has_excluded_pair(actions: np.ndarray, buttons: np.array) -> np.array:
     mutual_exclusion_mask = np.array(
-        [np.isin(buttons, excluded_group)for excluded_group in MUTUALLY_EXCLUSIVE_GROUPS])
+        [np.isin(buttons, excluded_group) for excluded_group in MUTUALLY_EXCLUSIVE_GROUPS])
 
     return np.any(np.sum(
         (actions[:, np.newaxis, :] * mutual_exclusion_mask.astype(int)),
@@ -45,7 +44,8 @@ def get_available_actions(buttons: np.array) -> t.List[t.List[float]]:
         [list(seq) for seq in itertools.product([0., 1.], repeat=len(buttons))])
 
     illegal_mask = (has_excluded_pair(action_combinations, buttons)
-                    | has_exclusive_button(action_combinations, buttons) | has_self_exclusion(action_combinations, buttons))
+                    | has_exclusive_button(action_combinations, buttons) | has_self_exclusion(action_combinations,
+                                                                                              buttons))
 
     possible_actions = action_combinations[~illegal_mask]
     possible_actions = possible_actions[np.sum(possible_actions, axis=1) > 0]
@@ -55,5 +55,4 @@ def get_available_actions(buttons: np.array) -> t.List[t.List[float]]:
     return possible_actions.tolist()
 
 
-possible_actions = get_available_actions(np.array(
-    [Button.ATTACK, Button.MOVE_FORWARD, Button.MOVE_LEFT, Button.MOVE_RIGHT, Button.TURN_LEFT, Button.TURN_RIGHT]))
+possible_actions = get_available_actions(np.array(deathmatch_all_actions))
