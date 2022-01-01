@@ -1,0 +1,26 @@
+{
+  "scenario": "deathmatch",
+  "type": "multiplayer",
+  "args": {
+    "bots": 8
+  },
+  "vizdoom_mode": "PLAYER",
+  "n_parallel": 4,
+  "frame_skip": 4,
+  "frame_stack": 4,
+  "action_combination": true,
+  "action_noop": false,
+  "obs_width": 320,
+  "obs_height": 240,
+  "obs_channels": 3,
+  "obs_crop": [
+    40,
+    4,
+    0,
+    4
+  ],
+  "obs_resize": [
+    0.5,
+    0.5
+  ]
+}

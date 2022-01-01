@@ -19,8 +19,8 @@ RESOLUTION_TO_VZD = {(320, 240): ScreenResolution.RES_320X240}
 
 CHANNELS = 3
 CROP_TOP = 40
-OBS_SHAPE = (100, 160, CHANNELS)
-SCREEN_SHAPE = (240, 320, CHANNELS)
+OBS_SHAPE = (CHANNELS, 100, 160)
+SCREEN_SHAPE = (CHANNELS, 240, 320)
 
 AMMO_VARIABLES = [
     GameVariable.AMMO0, GameVariable.AMMO1, GameVariable.AMMO2, GameVariable.AMMO3, GameVariable.AMMO4,
@@ -73,4 +73,4 @@ class EnvironmentConfig:
         width = self.resize[0] * (self.raw_width - sum(self.crop[[1, 3]]))
         height = self.resize[1] * (self.raw_height - sum(self.crop[[0, 2]]))
 
-        return int(height), int(width), self.raw_channels
+        return self.raw_channels, int(height), int(width)

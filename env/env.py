@@ -5,26 +5,9 @@ from vizdoom import *
 import typing as t
 import string
 import random
-import cv2
 from game_actions import *
 from config import *
-
-
-class FramePreprocessor:
-    """Crops and rescales an input image."""
-
-    def __init__(self, scale: np.array, crop: np.array):
-        top, right, bottom, left = crop
-        scale_width, scale_height = scale
-
-        self.process = lambda frame: cv2.resize(frame[top:-(bottom + 1), left:-(right + 1), :],
-                                                None,
-                                                fx=scale_width,
-                                                fy=scale_height,
-                                                interpolation=cv2.INTER_AREA)
-
-    def __call__(self, frame: np.ndarray):
-        return self.process(frame)
+from utils import FramePreprocessor
 
 
 class DoomEnv(gym.Env):
@@ -36,6 +19,7 @@ class DoomEnv(gym.Env):
         super().__init__()
 
         self.action_space = spaces.Discrete(len(possible_actions))
+        print(environment_config.get_input_shape())
         self.observation_space = spaces.Box(low=0, high=255, shape=environment_config.get_input_shape(), dtype=np.uint8)
 
         self.game = game
@@ -90,7 +74,6 @@ class DoomWithBots(DoomEnv):
 
         self.name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=2))
         self.n_bots = environment_config.env_args['bots']
-        self.shaping = environment_config.env_args['shaping']
 
         self.total_rew = 0
         self.last_damage_dealt = 0
@@ -179,6 +162,8 @@ class DoomWithBots(DoomEnv):
 
             self.reward_living = 0.
             self.penalty_death = -1.
+        else:
+            raise Exception("Unknown reward type")
 
         print(f'Logging with ID {self.name}')
 
@@ -312,10 +297,7 @@ class DoomWithBots(DoomEnv):
         # Apply action
         _ = self.game.make_action(self.possible_actions[action] if not array else action, self.frame_skip)
 
-        if self.shaping:
-            reward = self.shape_rewards(initial_reward=0)
-        else:
-            reward = self._compute_frag_reward()
+        reward = self.shape_rewards(initial_reward=0)
 
         self._respawn_if_dead()
 

@@ -54,10 +54,3 @@ def get_available_actions(buttons: np.array) -> t.List[t.List[float]]:
     print('Built action space of size {} from buttons {}'.format(
         len(possible_actions), buttons))
     return possible_actions.tolist()
-
-
-if __name__ == "__main__":
-    from config import DEATHMATCH_ACTIONS
-
-    possible_actions = get_available_actions(np.array(DEATHMATCH_ACTIONS))
-    print(possible_actions)
