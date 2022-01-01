@@ -102,23 +102,23 @@ class DoomWithBots(DoomEnv):
         self.tic_rate = environment_config.frame_skip
 
         # Rewards
-        if reward_type == "damage":
+        if reward_type == "battle":
             # 1 per kill
-            self.reward_factor_frag = 1.0
-            self.reward_factor_damage = 0.01
+            self.reward_factor_frag = 2
+            self.reward_factor_damage = 0.02
 
             # Player can move at ~16.66 units per tick
             self.reward_factor_distance = 0.
             self.penalty_factor_distance = 0.
             self.reward_threshold_distance = 3.0
 
-            self.reward_factor_ammo_increment = 0.01
-            self.reward_factor_ammo_decrement = -0.01
+            self.reward_factor_ammo_increment = 0.008
+            self.reward_factor_ammo_decrement = -0.005
 
             # Player starts at 100 health
-            self.reward_factor_health_increment = 0.01
-            self.reward_factor_health_decrement = -0.01
-            self.reward_factor_armor_increment = 0.01
+            self.reward_factor_health_increment = 0.005
+            self.reward_factor_health_decrement = -0.001
+            self.reward_factor_armor_increment = 0.001
 
             # reward for living/penalty for dying
             self.reward_living = 0.
