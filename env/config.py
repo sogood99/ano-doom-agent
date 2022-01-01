@@ -32,9 +32,6 @@ WEAPON_VARIABLES = [
     GameVariable.WEAPON5, GameVariable.WEAPON6, GameVariable.WEAPON7, GameVariable.WEAPON8, GameVariable.WEAPON9
 ]
 
-DEATHMATCH_ACTIONS = [Button.ATTACK, Button.MOVE_FORWARD, Button.MOVE_LEFT, Button.MOVE_RIGHT, Button.TURN_LEFT,
-                      Button.TURN_RIGHT]
-
 
 class EnvironmentConfig:
     """Class holding environment configuration information"""

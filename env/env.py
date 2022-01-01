@@ -156,9 +156,9 @@ class DoomWithBots(DoomEnv):
             self.reward_factor_armor_increment = 0.01
 
             # Reward for living
-
             self.reward_living = 0.008
             self.penalty_death = -1.0
+
         elif reward_type == "naive":
             # 1 per kill
             self.reward_factor_frag = 1.0
@@ -193,9 +193,9 @@ class DoomWithBots(DoomEnv):
         health_reward = self._compute_health_reward()
         armor_reward = self._compute_armor_reward()
         distance_reward = self._compute_distance_reward(*self._get_player_pos())
-        death_reward = self._compute_death_reward()
+        ld_reward = self._compute_life_death_reward()
 
-        return initial_reward + frag_reward + damage_reward + ammo_reward + health_reward + armor_reward + distance_reward + death_reward
+        return initial_reward + frag_reward + damage_reward + ammo_reward + health_reward + armor_reward + distance_reward + ld_reward
 
     def _compute_distance_reward(self, x, y):
         dx = self.last_x - x
@@ -268,7 +268,7 @@ class DoomWithBots(DoomEnv):
 
         return reward
 
-    def _compute_death_reward(self):
+    def _compute_life_death_reward(self):
         death_penalty = self.penalty_death if self.game.is_player_dead() else 0
         living_reward = self.reward_living if not self.game.is_player_dead() else 0
 

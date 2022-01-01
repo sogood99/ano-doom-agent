@@ -4,8 +4,7 @@ from vizdoom import *
 import numpy as np
 from stable_baselines.common.vec_env import DummyVecEnv
 from env import DoomEnv, DoomWithBots
-from config import DEATHMATCH_ACTIONS
-from game_actions import *
+from game_actions import get_available_actions
 
 
 def init_game(scenario, show_window=False):
@@ -16,7 +15,10 @@ def init_game(scenario, show_window=False):
     game.add_game_args('-host 1 -deathmatch +viz_nocheat 0 +cl_run 1 +name ANO +colorset 0' +
                        '+sv_forcerespawn 1 +sv_respawnprotect 1 +sv_nocrouch 1 +sv_noexit 1')
     game.init()
-    return game
+
+    possible_actions = get_available_actions(game.get_available_buttons())
+
+    return game, possible_actions
 
 
 def env_with_bots_shaped(scenario, **kwargs) -> DoomEnv:
@@ -31,11 +33,10 @@ def vec_env_with_bots_shaped(n_envs=1, **kwargs) -> DummyVecEnv:
 
 
 if __name__ == "__main__":
-    game = init_game("deathmatch", True)
-    for i in range(10):
+    game, possible_actions = init_game("deathmatch", True)
+    for i in range(6):
         game.send_game_command("addbot")
     episodes = 1
-    possible_actions = get_available_actions(DEATHMATCH_ACTIONS)
     for i in range(episodes):
         game.new_episode()
         while not game.is_episode_finished():
