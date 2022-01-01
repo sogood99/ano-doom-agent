@@ -73,15 +73,13 @@ class DoomWithBots(DoomEnv):
         super().__init__(doom_game, possible_actions, environment_config)
 
         self.name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=2))
-        self.n_bots = environment_config.env_args['bots']
 
         self.total_rew = 0
         self.last_damage_dealt = 0
-        self.deaths = 0
 
         self.living_time = 0
 
-        self.last_frags = 0
+        self.last_kills = 0
         self.last_health = 100
         self.last_armor = 0
         self.last_x, self.last_y = self._get_player_pos()
@@ -89,7 +87,7 @@ class DoomWithBots(DoomEnv):
         self.weapon_state = self._get_weapon_state()
 
         self.rewards_stats = {
-            'frag': 0,
+            'kills': 0,
             'damage': 0,
             'ammo': 0,
             'health': 0,
@@ -104,7 +102,7 @@ class DoomWithBots(DoomEnv):
         # Rewards
         if reward_type == "battle":
             # 1 per kill
-            self.reward_factor_frag = 2
+            self.reward_factor_kill = 2
             self.reward_factor_damage = 0.02
 
             # Player can move at ~16.66 units per tick
@@ -113,7 +111,7 @@ class DoomWithBots(DoomEnv):
             self.reward_threshold_distance = 3.0
 
             self.reward_factor_ammo_increment = 0.001
-            self.reward_factor_ammo_decrement = 0.025
+            self.reward_factor_ammo_decrement = -0.05
 
             # Player starts at 100 health
             self.reward_factor_health_increment = 0.005
@@ -121,11 +119,11 @@ class DoomWithBots(DoomEnv):
             self.reward_factor_armor_increment = 0.001
 
             # reward for living/penalty for dying
-            self.reward_living = 0.
+            self.reward_living = 0.0001
 
-            self.penalty_death = 0.
+            self.penalty_death = -0.001
         elif reward_type == "navigate":
-            self.reward_factor_frag = 0.5
+            self.reward_factor_kill = 0.5
             self.reward_factor_damage = 0.
 
             # Player can move at ~16.66 units per tick
@@ -147,7 +145,7 @@ class DoomWithBots(DoomEnv):
 
         elif reward_type == "naive":
             # 1 per kill
-            self.reward_factor_frag = 1.0
+            self.reward_factor_kill = 1.0
             self.reward_factor_damage = 0.
 
             self.reward_factor_distance = 0.
@@ -170,12 +168,8 @@ class DoomWithBots(DoomEnv):
 
         print(f'Logging with ID {self.name}')
 
-        self.game.send_game_command('removebots')
-        for i in range(self.n_bots):
-            self.game.send_game_command('addbot')
-
     def shape_rewards(self, initial_reward: float):
-        frag_reward = self._compute_frag_reward()
+        kill_reward = self._compute_kill_reward()
         damage_reward = self._compute_damage_reward()
         ammo_reward = self._compute_ammo_reward()
         health_reward = self._compute_health_reward()
@@ -183,7 +177,7 @@ class DoomWithBots(DoomEnv):
         distance_reward = self._compute_distance_reward(*self._get_player_pos())
         ld_reward = self._compute_life_death_reward()
 
-        return initial_reward + frag_reward + damage_reward + ammo_reward + health_reward + armor_reward + distance_reward + ld_reward
+        return initial_reward + kill_reward + damage_reward + ammo_reward + health_reward + armor_reward + distance_reward + ld_reward
 
     def _compute_distance_reward(self, x, y):
         dx = self.last_x - x
@@ -204,12 +198,12 @@ class DoomWithBots(DoomEnv):
 
         return reward
 
-    def _compute_frag_reward(self):
-        frags = self.game.get_game_variable(GameVariable.FRAGCOUNT)
-        reward = self.reward_factor_frag * (frags - self.last_frags)
+    def _compute_kill_reward(self):
+        kills = self.game.get_game_variable(GameVariable.KILLCOUNT)
+        reward = self.reward_factor_kill * (kills - self.last_kills)
 
-        self.last_frags = frags
-        self._log_reward_stat('frag', reward)
+        self.last_kills = kills
+        self._log_reward_stat('kills', reward)
 
         return reward
 
@@ -258,7 +252,7 @@ class DoomWithBots(DoomEnv):
 
     def _compute_life_death_reward(self):
         death_penalty = self.penalty_death if self.game.is_player_dead() else 0
-        living_reward = self.reward_living * (self.living_time / 5250.) ** 2
+        living_reward = self.reward_living * (self.living_time / 2100.) ** 2
 
         self._log_reward_stat('death', death_penalty)
         self._log_reward_stat('living', living_reward)
@@ -293,7 +287,6 @@ class DoomWithBots(DoomEnv):
         self.last_health = 100
         self.last_armor = 0
         self.living_time = 0
-        self.game.respawn_player()
         self.last_x, self.last_y = self._get_player_pos()
         self.ammo_state = self._get_ammo_state()
 
@@ -301,21 +294,15 @@ class DoomWithBots(DoomEnv):
         # Apply action
         _ = self.game.make_action(self.possible_actions[action] if not array else action, self.frame_skip)
 
-        if self.game.is_player_dead():
-            self.living_time = 0
-        else:
-            self.living_time += 1
+        self.living_time += 1
 
         reward = self.shape_rewards(initial_reward=0)
 
-        self._respawn_if_dead()
-
         done = self.game.is_episode_finished()
-
         self.state = self.game_frame(done)
         self.total_rew += reward
 
-        return self.state, reward, done, {'frags': self.last_frags}
+        return self.state, reward, done, {'kills': self.last_kills}
 
     def reset(self):
         self._print_state()
@@ -326,46 +313,25 @@ class DoomWithBots(DoomEnv):
         self.last_armor = 0
         self.last_health = 100
         self.living_time = 0
-        self.last_frags = 0
+        self.last_kills = 0
+        self.last_damage_dealt = 0
         self.total_rew = 0
-        self.deaths = 0
-
-        # Damage count is not cleared when starting a new episode: https://github.com/mwydmuch/ViZDoom/issues/399
-        # self.last_damage_dealt = 0
 
         # Reset reward stats
         for k in self.rewards_stats.keys():
             self.rewards_stats[k] = 0
 
-        self.game.send_game_command('removebots')
-        for i in range(self.n_bots):
-            self.game.send_game_command('addbot')
-
         return state
 
-    def _respawn_if_dead(self):
-        if not self.game.is_episode_finished():
-            # Check if player is dead
-            if self.game.is_player_dead():
-                self.deaths += 1
-                self._reset_player()
-
     def _print_state(self):
-        server_state = self.game.get_server_state()
-        player_scores = list(zip(server_state.players_names, server_state.players_frags, server_state.players_in_game))
-        player_scores = sorted(player_scores, key=lambda tup: tup[1])
 
-        print('Results:')
-        for player_name, player_score, player_ingame in player_scores:
-            if player_ingame:
-                print(f'{player_name}: {player_score}')
         print('************************')
-        print('Agent {} frags: {}, deaths: {}, total reward: {}'.format(
+        print('Agent {} kills: {}, alive time: {}, total reward: {}'.format(
             self.name,
-            self.last_frags,
-            self.deaths,
+            self.last_kills,
+            self.living_time,
             self.total_rew
         ))
         for k, v in self.rewards_stats.items():
-            print(f'- {k}: {v:+.1f}')
+            print(f'- {k}: {v:+.3f}')
         print('************************')

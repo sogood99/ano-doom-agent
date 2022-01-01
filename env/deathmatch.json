@@ -1,9 +1,5 @@
 {
   "scenario": "deathmatch",
-  "type": "multiplayer",
-  "args": {
-    "bots": 4
-  },
   "vizdoom_mode": "PLAYER",
   "n_parallel": 4,
   "frame_skip": 1,
