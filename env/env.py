@@ -139,7 +139,7 @@ class DoomWithBots(DoomEnv):
             self.reward_factor_armor_increment = 0.01
 
             # Reward for living
-            self.reward_living = 0.008
+            self.reward_living = 0.002
             self.penalty_death = -1.0
 
         elif reward_type == "naive":
