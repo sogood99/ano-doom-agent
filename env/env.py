@@ -127,7 +127,7 @@ class DoomWithBots(DoomEnv):
             self.reward_factor_damage = 0.
 
             # Player can move at ~16.66 units per tick
-            self.reward_factor_distance = 0.00005
+            self.reward_factor_distance = 0.00008
             self.penalty_factor_distance = 0.0025
             self.reward_threshold_distance = 3.0
 
@@ -135,8 +135,8 @@ class DoomWithBots(DoomEnv):
             self.reward_factor_ammo_decrement = -0.02
 
             self.reward_factor_health_increment = 0.02
-            self.reward_factor_health_decrement = -0.01
-            self.reward_factor_armor_increment = 0.01
+            self.reward_factor_health_decrement = -0.02
+            self.reward_factor_armor_increment = 0.005
 
             # Reward for living
             self.reward_living = 0.002
