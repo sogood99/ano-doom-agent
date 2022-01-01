@@ -54,5 +54,5 @@ def train_existing_naive_agent(timesteps, path, show_window=False) -> ppo2:
 
 
 if __name__ == "__main__":
-    TIMESTEPS = 1000000
+    TIMESTEPS = 500000
     create_naive_agent(TIMESTEPS)
