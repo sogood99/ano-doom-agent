@@ -193,9 +193,9 @@ class DoomWithBots(DoomEnv):
         d = distance - self.reward_threshold_distance
 
         if d > 0:
-            reward = 0.0005  # self.reward_factor_distance * d
+            reward = self.reward_factor_distance * d
         else:
-            reward = -0.0005  # self.penalty_factor_distance * d
+            reward = self.penalty_factor_distance * d
 
         self._log_reward_stat('distance', reward)
 
