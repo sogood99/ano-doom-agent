@@ -85,15 +85,12 @@ class DoomEnv(gym.Env):
 
 class DoomWithBots(DoomEnv):
 
-    def __init__(self, doom_game, possible_actions, maps, environment_config: EnvironmentConfig):
+    def __init__(self, doom_game, possible_actions, reward_type, environment_config: EnvironmentConfig):
         super().__init__(doom_game, possible_actions, environment_config)
 
         self.name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=2))
         self.n_bots = environment_config.env_args['bots']
         self.shaping = environment_config.env_args['shaping']
-        self.maps = maps
-
-        print(maps)
 
         self.total_rew = 0
         self.last_damage_dealt = 0
@@ -113,28 +110,75 @@ class DoomWithBots(DoomEnv):
             'health': 0,
             'armor': 0,
             'distance': 0,
+            'living': 0,
+            'death': 0,
         }
 
         self.tic_rate = environment_config.frame_skip
 
         # Rewards
-        # 1 per kill
-        self.reward_factor_frag = 1.0
-        self.reward_factor_damage = 0.01
+        if reward_type == "damage":
+            # 1 per kill
+            self.reward_factor_frag = 1.0
+            self.reward_factor_damage = 0.01
 
-        # Player can move at ~16.66 units per tick
-        self.reward_factor_distance = 0.00005
-        self.penalty_factor_distance = 0.0025
-        self.reward_threshold_distance = 3.0
+            # Player can move at ~16.66 units per tick
+            self.reward_factor_distance = 0.
+            self.penalty_factor_distance = 0.
+            self.reward_threshold_distance = 3.0
 
-        # Pistol clips have 10 bullets
-        self.reward_factor_ammo_increment = 0.02
-        self.reward_factor_ammo_decrement = -0.01
+            self.reward_factor_ammo_increment = 0.
+            self.reward_factor_ammo_decrement = -0.01
 
-        # Player starts at 100 health
-        self.reward_factor_health_increment = 0.02
-        self.reward_factor_health_decrement = -0.01
-        self.reward_factor_armor_increment = 0.01
+            # Player starts at 100 health
+            self.reward_factor_health_increment = 0.01
+            self.reward_factor_health_decrement = -0.01
+            self.reward_factor_armor_increment = 0.01
+
+            # reward for living/penalty for dying
+            self.reward_living = 0.
+
+            self.penalty_death = 0.
+        elif reward_type == "navigate":
+            self.reward_factor_frag = 0.5
+            self.reward_factor_damage = 0.
+
+            # Player can move at ~16.66 units per tick
+            self.reward_factor_distance = 0.00005
+            self.penalty_factor_distance = 0.0025
+            self.reward_threshold_distance = 3.0
+
+            self.reward_factor_ammo_increment = 0.02
+            self.reward_factor_ammo_decrement = -0.02
+
+            self.reward_factor_health_increment = 0.02
+            self.reward_factor_health_decrement = -0.01
+            self.reward_factor_armor_increment = 0.01
+
+            # Reward for living
+
+            self.reward_living = 0.008
+            self.penalty_death = -1.0
+        elif reward_type == "naive":
+            # 1 per kill
+            self.reward_factor_frag = 1.0
+            self.reward_factor_damage = 0.
+
+            self.reward_factor_distance = 0.
+            self.penalty_factor_distance = 0.
+            self.reward_threshold_distance = 0.
+
+            # Pistol clips have 10 bullets
+            self.reward_factor_ammo_increment = 0.
+            self.reward_factor_ammo_decrement = 0.
+
+            # Player starts at 100 health
+            self.reward_factor_health_increment = 0.
+            self.reward_factor_health_decrement = 0.
+            self.reward_factor_armor_increment = 0.
+
+            self.reward_living = 0.
+            self.penalty_death = -1.
 
         print(f'Logging with ID {self.name}')
 
@@ -149,8 +193,9 @@ class DoomWithBots(DoomEnv):
         health_reward = self._compute_health_reward()
         armor_reward = self._compute_armor_reward()
         distance_reward = self._compute_distance_reward(*self._get_player_pos())
+        death_reward = self._compute_death_reward()
 
-        return initial_reward + frag_reward + damage_reward + ammo_reward + health_reward + armor_reward + distance_reward
+        return initial_reward + frag_reward + damage_reward + ammo_reward + health_reward + armor_reward + distance_reward + death_reward
 
     def _compute_distance_reward(self, x, y):
         dx = self.last_x - x
@@ -223,6 +268,16 @@ class DoomWithBots(DoomEnv):
 
         return reward
 
+    def _compute_death_reward(self):
+        death_penalty = self.penalty_death if self.game.is_player_dead() else 0
+        living_reward = self.reward_living if not self.game.is_player_dead() else 0
+
+        self._log_reward_stat('death', death_penalty)
+        self._log_reward_stat('living', living_reward)
+
+        reward = death_penalty + living_reward
+        return reward
+
     def _get_player_pos(self):
         return self.game.get_game_variable(GameVariable.POSITION_X), self.game.get_game_variable(
             GameVariable.POSITION_Y)
@@ -252,16 +307,6 @@ class DoomWithBots(DoomEnv):
         self.game.respawn_player()
         self.last_x, self.last_y = self._get_player_pos()
         self.ammo_state = self._get_ammo_state()
-
-    def _auto_change_weapon(self):
-        # Determine the first weapon with ammo, starting from the most powerful ones TODO: make selection better
-        possible_weapons = np.flatnonzero(self.ammo_state * self.weapon_state)
-        possible_weapon = possible_weapons[-1] if len(possible_weapons) > 0 else None
-
-        current_selection = self.game.get_game_variable(GameVariable.SELECTED_WEAPON)
-        new_selection = possible_weapon if possible_weapon != current_selection else None
-
-        return new_selection
 
     def step(self, action, array=False):
         # Apply action
