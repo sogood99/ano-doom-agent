@@ -55,4 +55,4 @@ def train_existing_battle_agent(timesteps, path, show_window=False) -> ppo2:
 
 if __name__ == "__main__":
     TIMESTEPS = 500000
-    create_battle_agent(TIMESTEPS, show_window=True)
+    create_battle_agent(TIMESTEPS, show_window=False)

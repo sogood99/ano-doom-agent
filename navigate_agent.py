@@ -55,4 +55,4 @@ def train_existing_navigate_agent(timesteps, path, show_window=False) -> ppo2:
 
 if __name__ == "__main__":
     TIMESTEPS = 500000
-    create_navigate_agent(TIMESTEPS, show_window=True)
+    create_navigate_agent(TIMESTEPS, show_window=False)
