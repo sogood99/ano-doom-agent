@@ -2,7 +2,7 @@
   "scenario": "deathmatch",
   "type": "multiplayer",
   "args": {
-    "bots": 8
+    "bots": 4
   },
   "vizdoom_mode": "PLAYER",
   "n_parallel": 4,

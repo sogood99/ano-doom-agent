@@ -112,8 +112,8 @@ class DoomWithBots(DoomEnv):
             self.penalty_factor_distance = 0.
             self.reward_threshold_distance = 3.0
 
-            self.reward_factor_ammo_increment = 0.008
-            self.reward_factor_ammo_decrement = -0.005
+            self.reward_factor_ammo_increment = 0.001
+            self.reward_factor_ammo_decrement = 0.025
 
             # Player starts at 100 health
             self.reward_factor_health_increment = 0.005
