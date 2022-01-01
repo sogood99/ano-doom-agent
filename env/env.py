@@ -5,9 +5,9 @@ from vizdoom import *
 import typing as t
 import string
 import random
-from game_actions import *
-from config import *
-from utils import FramePreprocessor
+from .game_actions import *
+from .config import *
+from .utils import FramePreprocessor
 
 
 class DoomEnv(gym.Env):

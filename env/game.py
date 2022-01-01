@@ -3,10 +3,9 @@ import random
 from vizdoom import *
 import numpy as np
 from stable_baselines.common.vec_env import DummyVecEnv
-from env import DoomEnv, DoomWithBots
-from game_actions import get_available_actions
-from config import EnvironmentConfig
-import json
+from .env import DoomEnv, DoomWithBots
+from .game_actions import get_available_actions
+from .config import EnvironmentConfig
 
 
 def init_game(scenario, show_window=False):
@@ -28,13 +27,3 @@ def create_env(scenario, reward_type, env_param) -> DoomEnv:
 
 def create_vec_env(scenario, reward_type, env_param, n_envs=1) -> DummyVecEnv:
     return DummyVecEnv([lambda: create_env(scenario, reward_type, env_param)] * n_envs)
-
-
-if __name__ == "__main__":
-    with open("deathmatch.json") as f:
-        env_param_json = json.load(f)
-    env_param = EnvironmentConfig(env_param_json)
-    vec_env = create_vec_env(scenario="deathmatch", reward_type="naive", env_param=env_param, n_envs=2)
-    episodes = 1000
-    for i in range(episodes):
-        vec_env.step([0, 0])

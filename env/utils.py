@@ -16,7 +16,7 @@ class FramePreprocessor:
                                fx=scale_width,
                                fy=scale_height,
                                interpolation=cv2.INTER_AREA)
-            return frame.transpose((-1, 0, 1))
+            return frame
 
         self.process = process
 

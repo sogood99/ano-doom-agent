@@ -73,4 +73,4 @@ class EnvironmentConfig:
         width = self.resize[0] * (self.raw_width - sum(self.crop[[1, 3]]))
         height = self.resize[1] * (self.raw_height - sum(self.crop[[0, 2]]))
 
-        return self.raw_channels, int(height), int(width)
+        return int(height), int(width), self.raw_channels
