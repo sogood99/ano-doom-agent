@@ -2,8 +2,9 @@
 import itertools
 import typing as t
 import numpy as np
+from vizdoom import *
 
-from utils import *
+ActionList = t.List[t.List[float]]
 
 MUTUALLY_EXCLUSIVE_GROUPS = [
     [Button.MOVE_RIGHT, Button.MOVE_LEFT],
@@ -55,4 +56,8 @@ def get_available_actions(buttons: np.array) -> t.List[t.List[float]]:
     return possible_actions.tolist()
 
 
-possible_actions = get_available_actions(np.array(deathmatch_all_actions))
+if __name__ == "__main__":
+    from config import DEATHMATCH_ACTIONS
+
+    possible_actions = get_available_actions(np.array(DEATHMATCH_ACTIONS))
+    print(possible_actions)
