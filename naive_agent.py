@@ -26,9 +26,9 @@ def create_naive_agent(timesteps, show_window=False) -> ppo2.PPO2:
     agent = ppo2.PPO2(policy=policies.CnnLstmPolicy, env=trainEnv, nminibatches=4, learning_rate=constLR.value,
                       tensorboard_log="logs/tensorboard")
 
-    evaluation_callback = callbacks.EvalCallback(testEnv, best_model_save_path='logs/models/baseline_naive')
+    evaluation_callback = callbacks.EvalCallback(testEnv, best_model_save_path='logs/models/naive_agent')
 
-    agent.learn(total_timesteps=timesteps, tb_log_name="baseline_naive", callback=evaluation_callback)
+    agent.learn(total_timesteps=timesteps, tb_log_name="naive_agent", callback=evaluation_callback)
     trainEnv.close()
     testEnv.close()
     return agent
@@ -45,9 +45,9 @@ def train_existing_naive_agent(timesteps, path, show_window=False) -> ppo2:
 
     agent = ppo2.PPO2.load(path, env=trainEnv, tensorboard_log="logs/tensorboard")
 
-    evaluation_callback = callbacks.EvalCallback(testEnv, best_model_save_path='logs/models/baseline_naive')
+    evaluation_callback = callbacks.EvalCallback(testEnv, best_model_save_path='logs/models/naive_agent')
 
-    agent.learn(total_timesteps=timesteps, tb_log_name="baseline_naive", callback=evaluation_callback)
+    agent.learn(total_timesteps=timesteps, tb_log_name="naive_agent", callback=evaluation_callback)
     trainEnv.close()
     testEnv.close()
     return agent
