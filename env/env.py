@@ -79,6 +79,8 @@ class DoomWithBots(DoomEnv):
         self.last_damage_dealt = 0
         self.deaths = 0
 
+        self.living_time = 0
+
         self.last_frags = 0
         self.last_health = 100
         self.last_armor = 0
@@ -110,7 +112,7 @@ class DoomWithBots(DoomEnv):
             self.penalty_factor_distance = 0.
             self.reward_threshold_distance = 3.0
 
-            self.reward_factor_ammo_increment = 0.
+            self.reward_factor_ammo_increment = 0.01
             self.reward_factor_ammo_decrement = -0.01
 
             # Player starts at 100 health
@@ -139,7 +141,8 @@ class DoomWithBots(DoomEnv):
             self.reward_factor_armor_increment = 0.005
 
             # Reward for living
-            self.reward_living = 0.002
+            # use (living_time/total_time)**2 to calculate reward_living
+            self.reward_living = 0.2
             self.penalty_death = -1.0
 
         elif reward_type == "naive":
@@ -255,7 +258,7 @@ class DoomWithBots(DoomEnv):
 
     def _compute_life_death_reward(self):
         death_penalty = self.penalty_death if self.game.is_player_dead() else 0
-        living_reward = self.reward_living if not self.game.is_player_dead() else 0
+        living_reward = self.reward_living * (self.living_time / 5250.) ** 2
 
         self._log_reward_stat('death', death_penalty)
         self._log_reward_stat('living', living_reward)
@@ -289,6 +292,7 @@ class DoomWithBots(DoomEnv):
     def _reset_player(self):
         self.last_health = 100
         self.last_armor = 0
+        self.living_time = 0
         self.game.respawn_player()
         self.last_x, self.last_y = self._get_player_pos()
         self.ammo_state = self._get_ammo_state()
@@ -297,12 +301,15 @@ class DoomWithBots(DoomEnv):
         # Apply action
         _ = self.game.make_action(self.possible_actions[action] if not array else action, self.frame_skip)
 
+        if self.game.is_player_dead():
+            self.living_time = 0
+        else:
+            self.living_time += 1
+
         reward = self.shape_rewards(initial_reward=0)
 
         self._respawn_if_dead()
 
-        # Respawning takes a few ticks and might send us beyond the time limit.
-        # Episode end needs to be checked last
         done = self.game.is_episode_finished()
 
         self.state = self.game_frame(done)
@@ -318,6 +325,7 @@ class DoomWithBots(DoomEnv):
         self.last_x, self.last_y = self._get_player_pos()
         self.last_armor = 0
         self.last_health = 100
+        self.living_time = 0
         self.last_frags = 0
         self.total_rew = 0
         self.deaths = 0
