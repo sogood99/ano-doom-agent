@@ -6,17 +6,19 @@ import json
 
 DEATHMATCH_CFG = "deathmatch"
 
-with open("../env/deathmatch.json") as f:
+with open("./env/deathmatch.json") as f:
     env_param_json = json.load(f)
 DEATHMATCH_ENV = EnvironmentConfig(env_param_json)
 
 
-def create_naive_agent(timesteps) -> ppo2.PPO2:
+def create_naive_agent(timesteps, show_window=False) -> ppo2.PPO2:
     """
         Create a PPO agent with naive rewards and total training timestep = timestep
     """
-    trainEnv = create_vec_env(scenario=DEATHMATCH_CFG, env_param=DEATHMATCH_ENV, reward_type="naive", n_envs=4)
-    testEnv = create_vec_env(scenario=DEATHMATCH_CFG, env_param=DEATHMATCH_ENV, reward_type="naive")
+    trainEnv = create_vec_env(scenario=DEATHMATCH_CFG, env_param=DEATHMATCH_ENV, reward_type="naive",
+                              show_window=show_window, n_envs=4)
+    testEnv = create_vec_env(scenario=DEATHMATCH_CFG, env_param=DEATHMATCH_ENV, reward_type="naive",
+                             show_window=show_window)
 
     # linearLR = schedules.LinearSchedule(TIMESTEPS, 1e-1, 1e-4)
     constLR = schedules.ConstantSchedule(3e-4)
@@ -32,9 +34,11 @@ def create_naive_agent(timesteps) -> ppo2.PPO2:
     return agent
 
 
-def train_existing_naive_agent(timesteps, path) -> ppo2:
-    trainEnv = create_vec_env(scenario=DEATHMATCH_CFG, env_param=DEATHMATCH_ENV, reward_type="naive", n_envs=4)
-    testEnv = create_vec_env(scenario=DEATHMATCH_CFG, env_param=DEATHMATCH_ENV, reward_type="naive")
+def train_existing_naive_agent(timesteps, path, show_window=False) -> ppo2:
+    trainEnv = create_vec_env(scenario=DEATHMATCH_CFG, env_param=DEATHMATCH_ENV, reward_type="naive",
+                              show_window=show_window, n_envs=4)
+    testEnv = create_vec_env(scenario=DEATHMATCH_CFG, env_param=DEATHMATCH_ENV, reward_type="naive",
+                             show_window=show_window)
 
     # linearLR = schedules.LinearSchedule(TIMESTEPS, 1e-1, 1e-4)
     # constLR = schedules.ConstantSchedule(3e-4)
@@ -51,4 +55,4 @@ def train_existing_naive_agent(timesteps, path) -> ppo2:
 
 if __name__ == "__main__":
     TIMESTEPS = 100000
-    create_naive_agent(TIMESTEPS)
+    create_naive_agent(TIMESTEPS, show_window=True)
