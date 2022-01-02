@@ -4,7 +4,7 @@ from env.game import *
 from env.config import EnvironmentConfig
 import json
 
-DEATHMATCH_CFG = "deathmatch"
+DEATHMATCH_CFG = "defend_the_center"
 
 with open("./env/deathmatch.json") as f:
     env_param_json = json.load(f)
