@@ -8,6 +8,7 @@ import random
 from .game_actions import *
 from .config import *
 from .utils import FramePreprocessor
+from stable_baselines.ppo2 import PPO2
 
 
 class DoomEnv(gym.Env):
@@ -337,3 +338,41 @@ class DoomWithBots(DoomEnv):
         for k, v in self.rewards_stats.items():
             print(f'- {k}: {v:+.3f}')
         print('************************')
+
+
+class DoomNavigateBattle(DoomWithBots):
+    def __init__(self, doom_game, possible_actions, nav_agent: PPO2, bat_agent: PPO2,
+                 environment_config: EnvironmentConfig):
+        super(DoomNavigateBattle, self).__init__(doom_game, possible_actions, "naive", environment_config)
+        self.nav_agent = nav_agent
+        self.bat_agent = bat_agent
+
+        self.action_space = spaces.Discrete(2)
+
+        self.rnn_state = [None, None]
+
+    def step(self, action, array=False):
+        done = self.game.is_episode_finished()
+        obs = self.game_frame(done)
+        obs = [obs] + [self.empty_frame] * 3
+        done = [done] + [False] * 3
+
+        nav_state, bat_state = self.rnn_state
+
+        nav_action, nav_state = self.nav_agent.predict(observation=obs, state=nav_state, mask=done)
+        bat_action, bat_state = self.bat_agent.predict(observation=obs, state=bat_state, mask=done)
+
+        nav_action, bat_action = nav_action[0], bat_action[0]
+
+        self.rnn_state = [nav_state, bat_state]
+
+        if action == 0:
+            chosen_action = nav_action
+        elif action == 1:
+            chosen_action = bat_action
+        state, reward, done, info = super(DoomNavigateBattle, self).step(action=chosen_action, array=array)
+        return state, reward, done, info
+
+    def reset(self):
+        self.rnn_state = [None, None]
+        return super(DoomNavigateBattle, self).reset()
