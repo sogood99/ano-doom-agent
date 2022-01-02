@@ -25,7 +25,7 @@ def create_combined_agent(timesteps, nav_agent, bat_agent, show_window=False) ->
     # linearLR = schedules.LinearSchedule(TIMESTEPS, 1e-1, 1e-4)
     constLR = schedules.ConstantSchedule(3e-4)
 
-    agent = ppo2.PPO2(policy=policies.CnnPolicy, env=trainEnv, nminibatches=4, learning_rate=constLR.value,
+    agent = ppo2.PPO2(policy=policies.CnnLstmPolicy, env=trainEnv, nminibatches=4, learning_rate=constLR.value,
                       tensorboard_log="logs/tensorboard")
 
     evaluation_callback = callbacks.EvalCallback(testEnv, best_model_save_path='logs/models/combined_agent')
