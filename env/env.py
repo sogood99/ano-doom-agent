@@ -124,16 +124,16 @@ class DoomWithBots(DoomEnv):
 
             self.penalty_death = -0.001
         elif reward_type == "navigate":
-            self.reward_factor_kill = 0.5
+            self.reward_factor_kill = 0.1
             self.reward_factor_damage = 0.
 
             # Player can move at ~16.66 units per tick
-            self.reward_factor_distance = 0.00008
+            self.reward_factor_distance = 0.0008
             self.penalty_factor_distance = 0.0008
             self.reward_threshold_distance = 0.75
 
             self.reward_factor_ammo_increment = 0.02
-            self.reward_factor_ammo_decrement = -0.02
+            self.reward_factor_ammo_decrement = -0.05
 
             self.reward_factor_health_increment = 0.02
             self.reward_factor_health_decrement = -0.02
@@ -141,8 +141,8 @@ class DoomWithBots(DoomEnv):
 
             # Reward for living
             # use (living_time/total_time)**2 to calculate reward_living
-            self.reward_living = 0.2
-            self.penalty_death = -1.0
+            self.reward_living = 60 / 700
+            self.penalty_death = -10.0
 
         elif reward_type == "naive":
             # 1 per kill
