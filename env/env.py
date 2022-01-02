@@ -100,6 +100,7 @@ class DoomWithBots(DoomEnv):
         self.tic_rate = environment_config.frame_skip
 
         # Rewards
+        self.reward_type = reward_type
         if reward_type == "battle":
             # 1 per kill
             self.reward_factor_kill = 2
@@ -128,8 +129,8 @@ class DoomWithBots(DoomEnv):
 
             # Player can move at ~16.66 units per tick
             self.reward_factor_distance = 0.00008
-            self.penalty_factor_distance = 0.0025
-            self.reward_threshold_distance = 3.0
+            self.penalty_factor_distance = 0.0008
+            self.reward_threshold_distance = 0.75
 
             self.reward_factor_ammo_increment = 0.02
             self.reward_factor_ammo_decrement = -0.02
@@ -161,7 +162,7 @@ class DoomWithBots(DoomEnv):
             self.reward_factor_health_decrement = 0.
             self.reward_factor_armor_increment = 0.
 
-            self.reward_living = 0.
+            self.reward_living = 30 / 2100.
             self.penalty_death = -1.
         else:
             raise Exception("Unknown reward type")
@@ -252,7 +253,8 @@ class DoomWithBots(DoomEnv):
 
     def _compute_life_death_reward(self):
         death_penalty = self.penalty_death if self.game.is_player_dead() else 0
-        living_reward = self.reward_living * (self.living_time / 2100.) ** 2
+        living_reward = self.reward_living if self.reward_type == "naive" else self.reward_living * (
+                self.living_time / 2100.) ** 2
 
         self._log_reward_stat('death', death_penalty)
         self._log_reward_stat('living', living_reward)
