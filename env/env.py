@@ -9,6 +9,7 @@ from .game_actions import *
 from .config import *
 from .utils import FramePreprocessor
 from stable_baselines.ppo2 import PPO2
+from scipy.stats import entropy
 
 
 class DoomEnv(gym.Env):
@@ -341,15 +342,35 @@ class DoomWithBots(DoomEnv):
 
 
 class DoomNavigateBattle(DoomWithBots):
-    def __init__(self, doom_game, possible_actions, nav_agent: PPO2, bat_agent: PPO2,
+    def __init__(self, doom_game, possible_actions, reward_type, nav_agent: PPO2, bat_agent: PPO2,
                  environment_config: EnvironmentConfig):
         super(DoomNavigateBattle, self).__init__(doom_game, possible_actions, "naive", environment_config)
         self.nav_agent = nav_agent
         self.bat_agent = bat_agent
 
+        self.reward_type = reward_type
+
+        if not self.reward_type in ["train", "test"]:
+            raise Exception("Unknown reward type")
+
         self.action_space = spaces.Discrete(2)
 
         self.rnn_state = [None, None]
+
+        self.entropy_reward = 1 / 2100
+        self.past_actions = []
+
+        self.rewards_stats = {
+            'kills': 0,
+            'damage': 0,
+            'ammo': 0,
+            'health': 0,
+            'armor': 0,
+            'distance': 0,
+            'living': 0,
+            'death': 0,
+            'entropy': 0,
+        }
 
     def step(self, action, array=False):
         done = self.game.is_episode_finished()
@@ -370,9 +391,34 @@ class DoomNavigateBattle(DoomWithBots):
             chosen_action = nav_action
         elif action == 1:
             chosen_action = bat_action
+        else:
+            raise Exception("Unknown action")
+        self.past_actions.append(action)
+
         state, reward, done, info = super(DoomNavigateBattle, self).step(action=chosen_action, array=array)
+
+        if done:
+            self.past_actions = []
+
         return state, reward, done, info
 
     def reset(self):
         self.rnn_state = [None, None]
         return super(DoomNavigateBattle, self).reset()
+
+    def shape_rewards(self, initial_reward: float):
+        reward = super(DoomNavigateBattle, self).shape_rewards(initial_reward)
+
+        if self.reward_type is "train":
+            if len(self.past_actions) >= 20:
+                unique, counts = np.unique(np.array(self.past_actions), return_counts=True)
+
+                if len(counts) != 2:
+                    counts = np.concatenate([counts, [0]])
+
+                reward_entropy = self.entropy_reward * entropy(counts / counts.sum(), base=2)
+                self._log_reward_stat('entropy', reward_entropy)
+
+                reward += reward_entropy
+
+        return reward
