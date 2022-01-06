@@ -24,4 +24,4 @@ Tested on Defend The Center Map with kill count and survival time as reward metr
 
 ![Episode Reward](./fig/episode_reward.png)
 
-Grey is final result, Blue is naive agent, Red is combined agent with entropy reward (didn't work).
+Grey is final result, Blue is naive agent, Red is combined agent with entropy reward (entropy reward didn't work as expected).
