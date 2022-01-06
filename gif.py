@@ -11,11 +11,12 @@ with open("./env/deathmatch.json") as f:
     env_param_json = json.load(f)
 DEATHMATCH_ENV = EnvironmentConfig(env_param_json)
 
-bat_agent = ppo2.PPO2.load("./logs/models/battle_agent/best_model.zip")
-nav_agent = ppo2.PPO2.load("./logs/models/navigate_agent/best_model.zip")
-model = ppo2.PPO2.load("./logs/models/combined_agent/best_model.zip")
-env = create_vec_env_combined(scenario=DEATHMATCH_CFG, env_param=DEATHMATCH_ENV, nav_agent=nav_agent,
-                              bat_agent=bat_agent, reward_type="test", n_envs=4)
+# bat_agent = ppo2.PPO2.load("./logs/models/battle_agent/best_model.zip")
+# nav_agent = ppo2.PPO2.load("./logs/models/navigate_agent/best_model.zip")
+model = ppo2.PPO2.load("./logs/models/navigate_agent/best_model.zip")
+# env = create_vec_env_combined(scenario=DEATHMATCH_CFG, env_param=DEATHMATCH_ENV, nav_agent=nav_agent,
+#                               bat_agent=bat_agent, reward_type="test", n_envs=4)
+env = create_vec_env(scenario=DEATHMATCH_CFG, env_param=DEATHMATCH_ENV, reward_type="naive", n_envs=4)
 
 images = []
 obs = env.reset()
@@ -28,4 +29,4 @@ for i in range(2100):
     obs, reward, done, _ = env.step(action)
     img = env.render(mode='rgb_array')
 
-imageio.mimsave('./fig/combined_agent.gif', [np.array(img) for i, img in enumerate(images) if i % 2 == 0], fps=60)
+imageio.mimsave('./fig/nav_agent.gif', [np.array(img) for i, img in enumerate(images) if i % 2 == 0], fps=60)
