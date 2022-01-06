@@ -16,7 +16,7 @@ Tested on Defend The Center Map with kill count and survival time as reward metr
 
 ![Navigator Agent](./fig/nav_agent.gif)
 
-## Combined Agent
+## Combiner Agent
 
 ![Combined Agent](./fig/combined_agent.gif)
 
